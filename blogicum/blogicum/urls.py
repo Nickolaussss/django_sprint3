@@ -18,6 +18,8 @@ from django.urls import include, path
 
 from django.conf import settings
 
+import debug_toolbar
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('blog.urls')),
@@ -27,5 +29,4 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    import debug_toolbar
-    urlpatterns += (path('__debug__/', include(debug_toolbar.urls)),) 
+    urlpatterns += (path('__debug__/', include(debug_toolbar.urls)),)
