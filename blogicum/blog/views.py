@@ -1,20 +1,17 @@
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Q
 
 from blog.models import Post, Category
 
 import datetime
 
+num_objects = 5
+
 
 def index(request):
     template = 'blog/index.html'
-    post_list = Post.objects.select_related(
-        'location'
-    ).filter(
-        pub_date__lt=datetime.datetime.now(),
-        is_published=True,
-        category__is_published=True
-    ).order_by('-created_at')[:5]
+    post_list = display(
+        note_relations(Post.objects)
+    ).order_by('created_at')[:num_objects]
     context = {
         'post_list': post_list
     }
@@ -24,11 +21,7 @@ def index(request):
 def post_detail(request, id):
     template = 'blog/detail.html'
     post = get_object_or_404(
-        Post.objects.select_related('location').filter(
-            Q(is_published=True),
-            Q(category__is_published=True),
-            pub_date__lt=datetime.datetime.now(),
-        ),
+        display(note_relations(Post.objects)),
         pk=id
     )
     context = {
@@ -45,15 +38,24 @@ def category_posts(request, category_slug):
         ).filter(is_published=True),
         slug=category_slug
     )
-    post_list = Post.objects.select_related(
-        'location'
-    ).filter(
-        category__slug=category_slug,
-        is_published=True,
-        pub_date__lt=datetime.datetime.now()
+    post_list = display(note_relations(Post.objects)).filter(
+        category__slug=category_slug
     )
     context = {
         'category': category,
         'post_list': post_list
     }
     return render(request, template, context)
+
+
+def note_relations(notes):
+    return notes.select_related('location')
+
+
+def display(notes):
+    return notes.filter(
+        category__is_published=True,
+        is_published=True,
+        pub_date__lt=datetime.datetime.now()
+
+    )
